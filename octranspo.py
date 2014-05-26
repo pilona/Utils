@@ -22,11 +22,15 @@ def query(src, dst, city, constraint, datetime):
     raise NotImplementedError()
 
 
-def _matchdt(*args):
-    return parsedate(' '.join(args))
+def _matchdt(parser, *args):
+    try:
+        return parsedate(' '.join(args))
+    except:
+        parser.error("unparseable date")
 
 
-def _matchloc(*args,
+def _matchloc(parser,
+              *args,
               _map={"Cantley": "CANT",
                     "Chelsea": "CHEL",
                     "Gatineau": "GATI",
@@ -142,8 +146,7 @@ if __name__ == "__main__":
                             help=desc,
                             default=default,
                             nargs="*",
-                            metavar="address part",
-                            type=_matchloc)
+                            metavar="address part")
 
     # Must add roughly five-ten minutes or form complains that departure time
     # is in the past.
@@ -165,14 +168,13 @@ if __name__ == "__main__":
                            help=desc,
                            default=default,
                            nargs="*",
-                           metavar="datetime part",
-                           type=_matchdt)
+                           metavar="datetime part")
 
     args = parser.parse_args()
 
-    origin, originRegion = args.src
-    destination, destinationRegion = args.dst
-    constraint = args.arrival or args.departure
+    origin, originRegion = _matchloc(parser, *args.src)
+    destination, destinationRegion = _matchloc(parser, *args.dst)
+    constraint = _matchdt(parser, *(args.arrival or args.departure))
     constraint += timedelta(minutes=args.skew)
     qs = urlencode({"origin": origin,
                     "originRegion": originRegion,
