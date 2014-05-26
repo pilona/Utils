@@ -154,7 +154,7 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     for flag, desc, default in [("--departure",
                                  "Departing at…",
-                                 datetime.now() + timedelta(minutes=5)),
+                                 datetime.now()),
                                 ("--arrival",
                                  "Arriving at…",
                                  datetime.now() + timedelta(hours=1,
