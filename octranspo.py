@@ -38,10 +38,12 @@ def _matchloc(*args,
         code = _map[city]
     elif city in _map.values():
         code = city
+    elif address[-1].endswith(','):
+        parser.error("Unknown city")
     else:
-        raise ValueError()
+        code = _map[_city]
 
-    return ' '.join(address), code
+    return ' '.join(address).rstrip(', '), code
 
 
 def isolate_results(soup):
