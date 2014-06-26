@@ -57,6 +57,7 @@ def _matchloc(parser,
         parser.error("Unknown city")
     else:
         code = _map[_city]
+        address.append(city)
 
     return ' '.join(address).rstrip(', '), code
 
