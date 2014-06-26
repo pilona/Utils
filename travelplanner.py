@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     origin, originRegion = _matchloc(parser, *args.src)
     destination, destinationRegion = _matchloc(parser, *args.dst)
-    constraint = _matchdt(parser, *(args.arrival or args.departure))
+    constraint = _matchdt(parser, *map(str, (args.arrival or args.departure)))
     constraint += timedelta(minutes=args.skew)
     qs = urlencode({"origin": origin,
                     "originRegion": originRegion,
