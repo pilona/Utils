@@ -61,7 +61,7 @@ def _matchloc(parser,
     return ' '.join(address).rstrip(', '), code
 
 
-def isolate_results(soup):
+def _isolate_results(soup):
     """
     Scrape directions header, route summary, and route details"
     """
@@ -82,7 +82,7 @@ def isolate_results(soup):
     return header, summary, details
 
 
-def print_results(header, summary, details):
+def _print_results(header, summary, details):
     """
     Print route information as plain text
     """
@@ -94,7 +94,7 @@ def print_results(header, summary, details):
 
 
 # TODO: Cache results
-def interact(page):
+def _interact(page):
     """
     Display and recursively prompt user to page results.
     """
@@ -136,7 +136,7 @@ def interact(page):
                         call([browser, tmp.name])
 
     else:
-        print_results(*isolate_results(soup))
+        _print_results(*_isolate_results(soup))
         prompt = "(E)earlier, (l)ater, (w)alking instructions, (q)uit: "
         try:
             response = None
@@ -147,9 +147,9 @@ def interact(page):
         else:
             if response == "w":
                 soup = BeautifulSoup(urlopen(walking["href"]))
-                print_results(*isolate_results(soup))
+                _print_results(*_isolate_results(soup))
             elif response != "q":
-                interact(urlopen({"e": earlier,
+                _interact(urlopen({"e": earlier,
                                   "l": later}[response]["href"]))
 
 
@@ -205,4 +205,4 @@ if __name__ == "__main__":
                     "pm": constraint.strftime("%p") == "PM",
                     "day": constraint.strftime("%Y%m%d")})
     response = urlopen('?'.join([_FORM_BASE, qs]))
-    interact(response.read())
+    _interact(response.read())
