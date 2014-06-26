@@ -1,0 +1,19 @@
+#! /bin/sh
+
+# Courtesy of http://www.jillesvangurp.com/2012/06/10/git-svn-tips/
+# Modified by Alex Pilon, Jun 26 2014
+
+set -e
+
+TRACKING_BRANCH=$(git config --get svn-remote.svn.fetch \
+                    | sed -e 's/.*:refs\/remotes\///')
+REV=$(git svn find-rev $(git rev-list --date-order \
+                                      --max-count=1 \
+                                      $TRACKING_BRANCH))
+git diff --no-prefix $(git rev-list --date-order \
+                                    --max-count=1 \
+                                    $TRACKING_BRANCH) "$@" \
+  | sed -e "s/^+++ .*/&    (working copy)/" \
+        -e "s/^--- .*/&    (revision $REV)/" \
+        -e "s/^diff --git [^[:space:]]*/Index:/" \
+        -e "s/^index.*/===================================================================/"
