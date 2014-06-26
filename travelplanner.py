@@ -42,6 +42,12 @@ def _matchloc(parser,
                     "Ottawa": "OTTA",
                     "Val-des-monts": "VALD"},
               _city="Ottawa"):
+    """
+    Convert location phrase to (address, travel planner city mnemonic) tuple.
+
+    ["1337", "Foo", "drive"] → ("1337 Foo drive", "OTTA")
+    ["DEADBEEF station, Gatineau"] → ("DEADBEEF station", "GATI")
+    """
     *address, city = args
     if city in _map:
         code = _map[city]
@@ -56,6 +62,9 @@ def _matchloc(parser,
 
 
 def isolate_results(soup):
+    """
+    Scrape directions header, route summary, and route details"
+    """
     summary = soup.find(lambda tag: tag.name == "table" and
                         "TripPlanDetailsTable" in tag.attrs.get("class",
                                                                 set()))
@@ -74,6 +83,9 @@ def isolate_results(soup):
 
 
 def print_results(header, summary, details):
+    """
+    Print route information as plain text
+    """
     with NamedTemporaryFile(mode="w") as tmp:
         for element in summary, details:
             tmp.write(str(element))
@@ -83,6 +95,9 @@ def print_results(header, summary, details):
 
 # TODO: Cache results
 def interact(page):
+    """
+    Display and recursively prompt user to page results.
+    """
     soup = BeautifulSoup(page)
     # flake8 is wrong in saying that this was overindented. I don't care what
     # it thinks. The expression part of the lambda should not be *under* the
