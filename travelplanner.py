@@ -16,6 +16,11 @@ from dateutil.parser import parse as parsedate
 
 _DEFAULT_ORIGIN =  # Fill in yourself
 _DEFAULT_DESTINATION =  # Fill in yourself
+_DEFAULT_DEPARTURE_TIME = lambda: [datetime.now()]
+_DEFAULT_ARRIVAL_TIME = lambda: [datetime.now() + timedelta(hours=1,
+                                                            minutes=30)]
+
+_FORM_BASE = "http://www.octranspo1.com/travelplanner/travelplanner"
 
 
 def query(src, dst, city, constraint, datetime):
@@ -159,11 +164,10 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     for flag, desc, default in [("--departure",
                                  "Departing at…",
-                                 datetime.now()),
+                                 _DEFAULT_DEPARTURE_TIME()),
                                 ("--arrival",
                                  "Arriving at…",
-                                 datetime.now() + timedelta(hours=1,
-                                                            minutes=30))]:
+                                 _DEFAULT_ARRIVAL_TIME())]:
         group.add_argument(flag,
                            help=desc,
                            default=default,
@@ -185,6 +189,5 @@ if __name__ == "__main__":
                     "minute": constraint.minute,
                     "pm": constraint.strftime("%p") == "PM",
                     "day": constraint.strftime("%Y%m%d")})
-    response = urlopen('?'.join(["http://www.octranspo1.com/"
-                                 + "travelplanner/travelplanner", qs]))
+    response = urlopen('?'.join([_FORM_BASE, qs]))
     interact(response.read())
