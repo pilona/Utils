@@ -53,7 +53,7 @@ def _matchloc(parser,
         code = _map[city]
     elif city in _map.values():
         code = city
-    elif address[-1].endswith(','):
+    elif len(address) > 0 and address[-1].endswith(','):
         parser.error("Unknown city")
     else:
         code = _map[_city]
