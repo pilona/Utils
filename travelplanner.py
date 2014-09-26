@@ -138,7 +138,7 @@ def _interact(page):
 
     else:
         _print_results(*_isolate_results(soup))
-        prompt = "(E)earlier, (l)ater, (w)alking instructions, (q)uit: "
+        prompt = "(E)arlier, (l)ater, (w)alking instructions, (q)uit: "
         try:
             response = None
             while response not in {"e", "l", "w", "q"}:
