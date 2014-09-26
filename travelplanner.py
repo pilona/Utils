@@ -151,7 +151,7 @@ def _interact(page):
                 _print_results(*_isolate_results(soup))
             elif response != "q":
                 _interact(urlopen({"e": earlier,
-                                  "l": later}[response]["href"]))
+                                   "l": later}[response]["href"]))
 
 
 if __name__ == "__main__":
