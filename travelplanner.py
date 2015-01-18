@@ -27,7 +27,7 @@ def query(src, dst, city, constraint, datetime):
     raise NotImplementedError()
 
 
-def _matchdt(parser, *args):
+def _matchdt(parser, args):
     try:
         return parsedate(' '.join(args))
     except:
@@ -178,15 +178,12 @@ if __name__ == "__main__":
                         type=int)
 
     group = parser.add_mutually_exclusive_group(required=True)
-    for flag, desc, default in [("--departure",
-                                 "Departing at…",
-                                 _DEFAULT_DEPARTURE_TIME()),
-                                ("--arrival",
-                                 "Arriving at…",
-                                 _DEFAULT_ARRIVAL_TIME())]:
+    for flag, desc in [("--departure",
+                        "Departing at…"),
+                       ("--arrival",
+                        "Arriving at…")]:
         group.add_argument(flag,
                            help=desc,
-                           default=default,
                            nargs="*",
                            metavar="datetime part")
 
@@ -194,7 +191,16 @@ if __name__ == "__main__":
 
     origin, originRegion = _matchloc(parser, *args.src)
     destination, destinationRegion = _matchloc(parser, *args.dst)
-    constraint = _matchdt(parser, *map(str, (args.arrival or args.departure)))
+    if args.arrival is not None:
+        if len(args.arrival) > 0:
+            constraint = _matchdt(parser, args.arrival)
+        else:
+            constraint = _DEFAULT_ARRIVAL_TIME()
+    else:
+        if len(args.departure) > 0:
+            constraint = _matchdt(parser, args.departure)
+        else:
+            constraint = _DEFAULT_DEPARTURE_TIME()
     constraint += timedelta(minutes=args.skew)
     qs = urlencode({"origin": origin,
                     "originRegion": originRegion,
