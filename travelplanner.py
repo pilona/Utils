@@ -187,7 +187,13 @@ if __name__ == "__main__":
                            nargs="*",
                            metavar="datetime part")
 
+    parser.add_argument("--reverse",
+                        action="store_true",
+                        help="Reverse source and destination")
+
     args = parser.parse_args()
+    if args.reverse:
+        args.src, args.dst = args.dst, args.src
 
     origin, originRegion = _matchloc(parser, *args.src)
     destination, destinationRegion = _matchloc(parser, *args.dst)
