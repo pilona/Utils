@@ -191,6 +191,9 @@ if __name__ == "__main__":
                         action="store_true",
                         help="Reverse source and destination")
 
+    for arg in "--regular-fare", "--bike-racks", "--exclude-sto":
+        parser.add_argument(arg, action="store_true")
+
     args = parser.parse_args()
     if args.reverse:
         args.src, args.dst = args.dst, args.src
@@ -208,6 +211,7 @@ if __name__ == "__main__":
         else:
             constraint = _DEFAULT_DEPARTURE_TIME()
     constraint += timedelta(minutes=args.skew)
+    onoffdict = {True: "on", False: "off"}
     qs = urlencode({"origin": origin,
                     "originRegion": originRegion,
                     "destination": destination,
@@ -216,6 +220,9 @@ if __name__ == "__main__":
                     "hour": constraint.strftime("%I").lstrip('0'),
                     "minute": constraint.minute,
                     "pm": constraint.strftime("%p") == "PM",
-                    "day": constraint.strftime("%Y%m%d")})
+                    "day": constraint.strftime("%Y%m%d"),
+                    "regularFare": onoffdict[args.regular_fare],
+                    "excludeSTO": onoffdict[args.exclude_sto],
+                    "bikeRacks": onoffdict[args.bike_racks]})
     response = urlopen('?'.join([_FORM_BASE, qs]))
     _interact(response.read())
