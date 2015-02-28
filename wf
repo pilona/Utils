@@ -1,0 +1,71 @@
+#! /usr/bin/env python
+
+import html
+import json
+import requests
+
+
+_DATA_URL = 'http://weather.gc.ca/wxlink/site_js/s0000430_e.js'
+
+
+def gc_getitems():
+    for varkw, var, eqop, val in (line.rstrip(';')
+                                      .split(maxsplit=3)
+                                  for line
+                                  in requests.get(_DATA_URL).text.splitlines()
+                                  if line):
+        assert varkw == 'var'
+        assert eqop == '='
+        yield var, json.loads(val)
+
+
+def gc_jsonitems(items):
+    print(html.unescape(json.dumps(dict(items))))
+
+
+def gc_printitems(items):
+    d = dict(items)
+    # Wind to or from?
+    print('{}, {}{}, wind {}Km/h to {}'
+          .format(d['obCondition'],
+                  d['obTemperature'],
+                  ' (wind chill {})'.format(d['obWindChill']) if 'obWindChill' in d else '',
+                  d['obWindSpeed'], d['obWindDir']))
+
+
+def gc_gtkitems(items):
+    raise NotImplementedError()
+
+
+def gc_tkitems(items):
+    raise NotImplementedError()
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    from os import environ
+
+    ap = ArgumentParser('Government of Canada Ottawa, ON weather feed')
+    uis = ap.add_mutually_exclusive_group()
+    for ui in 'print', 'json', 'gtk', 'tk':
+        uis.add_argument('--' + ui, dest='ui', action='store_const', const=ui)
+
+    args = ap.parse_args()
+
+    if args.ui is None:
+        if 'DISPLAY' in environ:
+            try:
+                from gi.repository import Gtk
+                args.ui = 'gtk'
+            except ImportError:
+                import tkinter
+                args.ui = 'tk'
+        else:
+            args.ui = 'print'
+
+    {
+        'json': gc_jsonitems,
+        'print': gc_printitems,
+        'gtk': gc_gtkitems,
+        'tk': gc_tkitems,
+    }[args.ui](gc_getitems())
