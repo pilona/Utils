@@ -166,7 +166,7 @@ if __name__ == "__main__":
         parser.add_argument(name,
                             help=desc,
                             default=default,
-                            nargs="*",
+                            nargs="+",
                             metavar="address part")
 
     # Must add roughly five-ten minutes or form complains that departure time
