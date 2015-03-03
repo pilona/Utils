@@ -2,7 +2,7 @@
 
 import html
 import json
-import requests
+from urllib.request import urlopen
 
 
 _DATA_URL = 'http://weather.gc.ca/wxlink/site_js/s0000430_e.js'
@@ -12,7 +12,9 @@ def gc_getitems():
     for varkw, var, eqop, val in (line.rstrip(';')
                                       .split(maxsplit=3)
                                   for line
-                                  in requests.get(_DATA_URL).text.splitlines()
+                                  in urlopen(_DATA_URL).read()
+                                                       .decode()
+                                                       .splitlines()
                                   if line):
         assert varkw == 'var'
         assert eqop == '='
