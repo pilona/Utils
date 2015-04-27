@@ -31,7 +31,8 @@ def gc_printitems(items):
     print('{}, {}{}, wind {}Km/h from {}'
           .format(d['obCondition'],
                   d['obTemperature'],
-                  ' (wind chill {})'.format(d['obWindChill']) if 'obWindChill' in d else '',
+                  ' (wind chill {})'
+                    .format(d['obWindChill']) if d.get('obWindChill', False) else '',
                   d['obWindSpeed'], d['obWindDir']))
 
 
