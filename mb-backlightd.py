@@ -73,7 +73,7 @@ _GOVERNORS = {'bangbang': bangbang,
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
-    ap = ArgumentParser()
+    ap = ArgumentParser(description='Macbook automatic backlight daemon')
     ap.add_argument('-t', '--threshold',
                     type=int, default=_THRESHOLD,
                     help='Threshold value for light sensor to turn '
