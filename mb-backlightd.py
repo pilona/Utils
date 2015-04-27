@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-from collections import namedtuple
 from time import sleep
 from os import path
 import re
@@ -16,14 +15,9 @@ _FMT = re.compile(r'^\((\d+),(\d+)\)$')
 _POLL_INTERVAL = 5
 
 
-class _Limits(namedtuple('_Limits', ['min', 'max'])):
-    def __contains__(self, elem):
-        return self.min <= elem <= self.max
-
-
 def _getlimits(basedir):
     with open(path.join(basedir, 'max_brightness')) as fp:
-        return _Limits(0, int(fp.read().strip()))
+        return int(fp.read().strip())
 
 
 LIMITS = {'screen': _getlimits(_SCREEN_BACKLIGHT),
@@ -37,8 +31,43 @@ def bl(device, brightness=None):
         if brightness is None:
             return int(fp.read().strip())
         else:
-            assert brightness in LIMITS[device]
+            brightness = int(brightness)
+            assert brightness <= LIMITS[device], (brightness, LIMITS[device])
             print(brightness, file=fp)
+
+
+def bangbang(args):
+    if left < args.threshold:
+        bl('keyboard', LIMITS['keyboard'])
+        bl('screen', args.minimum_brightness)
+    else:
+        bl('keyboard', 0)
+        bl('screen', LIMITS['screen'])
+
+
+def proportional(args):
+    if left < args.threshold:
+        bl('keyboard', LIMITS['keyboard'] * (1 - left/_THRESHOLD))
+        bl('screen', args.minimum_brightness +
+                     LIMITS['screen'] * (left/_THRESHOLD))
+    else:
+        bl('keyboard', 0)
+        bl('screen', LIMITS['screen'])
+
+
+def inverse(args):
+    if left < args.threshold:
+        bl('keyboard', LIMITS['keyboard'] * left/_THRESHOLD)
+        bl('screen', args.minimum_brightness +
+                     LIMITS['screen'] * (left/_THRESHOLD))
+    else:
+        bl('keyboard', 0)
+        bl('screen', LIMITS['screen'])
+
+
+_GOVERNORS = {'bangbang': bangbang,
+              'proportional': proportional,
+              'inverse': inverse}
 
 
 if __name__ == '__main__':
@@ -52,18 +81,19 @@ if __name__ == '__main__':
     ap.add_argument('-n', '--poll-interval',
                     type=int, default=_POLL_INTERVAL,
                     help='Time between light level reads')
+    ap.add_argument('-g', '--governor',
+                    default='bangbang', choices=_GOVERNORS, nargs='?',
+                    help='Brightness regulation governor')
+    ap.add_argument('-b', '--minimum-brightness',
+                    type=int, default=LIMITS['screen'] // 2,
+                    help='Minimum screen brightness')
     args = ap.parse_args()
 
     with open(_LIGHT_SENSOR) as fp:
         while True:
             left, right = map(int, _FMT.match(fp.read()).groups())
 
-            if left < args.threshold:
-                bl('keyboard', _LIMITS['keyboard'].max)
-                bl('screen', _LIMITS['screen'].max // 2)
-            else:
-                bl('keyboard', _LIMITS['keyboard'].min)
-                bl('screen', _LIMITS['screen'].max)
+            _GOVERNORS[args.governor](args)
 
             fp.seek(0)
             sleep(args.poll_interval)
