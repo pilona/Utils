@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
+
+# Borderline derivative work of
+# https://raw.githubusercontent.com/incitat/eran-dotfiles/master/bin/terminalcolors.py
+#
+# Original credit:
 # Copyright (C) 2006 by Johannes Zellner, <johannes@zellner.org>
 # modified by mac@calmar.ws to fit my output needs
 # modified by crncosta@carloscosta.org to fit my output needs
-# modified by alp@alexpilon.ca to not be so unidiomatic and slow
-
-## obtained from:
-## https://raw.githubusercontent.com/incitat/eran-dotfiles/master/bin/terminalcolors.py
-## also see:
-## http://vim.wikia.com/wiki/256_colors_in_vim
 
 from sys import stdout
 from curses import setupterm, tigetstr, tparm, COLOR_BLACK, COLOR_WHITE
