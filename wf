@@ -28,7 +28,7 @@ def gc_jsonitems(items):
 def gc_printitems(items):
     d = dict(items)
     # Wind to or from?
-    print('{}, {}{}, wind {}Km/h to {}'
+    print('{}, {}{}, wind {}Km/h from {}'
           .format(d['obCondition'],
                   d['obTemperature'],
                   ' (wind chill {})'.format(d['obWindChill']) if 'obWindChill' in d else '',
