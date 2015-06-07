@@ -4,6 +4,7 @@ from os import path, walk, execlp, environ
 from string import Template
 from argparse import ArgumentParser
 from warnings import warn
+from tempfile import TemporaryFile
 from contextlib import suppress
 from collections import defaultdict, OrderedDict
 
@@ -122,9 +123,13 @@ entries = OrderedDict((entry.getName(), entry)
                       for entry
                       in get_runnable_entries())
 
-choice = subprocess.check_output(['dmenu'] + args.dmenuargs,
-                                 universal_newlines=True,
-                                 input='\n'.join(entries))
+with TemporaryFile() as fp:
+    fp.write(b'\n'.join(map(str.encode, entries)))
+    fp.flush()
+    fp.seek(0)
+    choice = subprocess.check_output(['dmenu'] + args.dmenuargs,
+                                     universal_newlines=True,
+                                     stdin=fp)
 entry = entries[choice.strip()]
 # TODO: StartupWMClass hint
 # TODO: LC_MESSAGES
