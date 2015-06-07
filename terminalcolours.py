@@ -13,8 +13,8 @@ from curses import setupterm, tigetstr, tparm, COLOR_BLACK, COLOR_WHITE
 
 
 setupterm()
-setaf = lambda i: tparm(tigetstr('setaf'), i)
-setab = lambda i: tparm(tigetstr('setab'), i)
+def setaf(i): return tparm(tigetstr('setaf'), i)
+def setab(i): return tparm(tigetstr('setab'), i)
 black = setab(COLOR_BLACK)
 write = stdout.buffer.write
 
