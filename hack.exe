@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/sh
 
 cat <<'END'
 
@@ -25,36 +25,51 @@ dX.    9Xb      .dXb    __                         __    dXb.     dXP     .Xb
                                `             '
 END
 
-if [ -z $1 ]
-then
-	echo -e "Please use the script along with a valid website as an argument.\nexample: ./$0 www.google.com\nDo not use http:// or trailing /, DOMAIN ONLY."
-exit 1
+if [ -z "$1" ]; then
+    cat <<- EOF
+	Please use the script along with a valid website as an argument.
+    example: $0 www.google.com
+    Do not use http:// or trailing /, DOMAIN ONLY.
+EOF
+    exit 1
 fi
 
-function dot
-{
-	for i in $(seq 1 $1); do echo -n "."; sleep 0.04; done; echo -e '[\033[00;32mCOMPLETE\033[00;0m]';sleep 0.6
+dot() {
+	for i in $(seq 1 $1); do
+        printf '.'
+        sleep 0.04
+    done
+    printf '['
+    tput setaf 2
+    printf 'COMPLETE'
+    tput sgr0
+    printf ']\n'
+    sleep 0.6
 }
-echo -n "Enumerating Target"
+
+printf 'Enumerating Target'
 dot 40
-echo -e " [+] Host: $1\n [+] IPv4: $(host $1 | head -n1 | egrep -o [0-9.]+$ )"
-echo -n "Opening SOCK5 ports on infected hosts"
+printf ' [+] Host: %s\n [+] IPv4: %s\n' \
+         "$1" "$(host $1 | head -n1 | grep -E -o '[0-9.]+$')"
+printf 'Opening SOCK5 ports on infected hosts'
 dot 21
-echo " [+] SSL entry point on 127.0.0.1:1337"
-echo -n "Chaining proxies"
+printf ' [+] SSL entry point on 127.0.0.1:1337\n'
+printf 'Chaining proxies'
 dot 42
-echo ' [+] 7/7 proxies chained {BEL>AUS>JAP>CHI>NOR>FIN>UKR}'
-echo -n "Launching port knocking sequence"
+printf ' [+] 7/7 proxies chained {BEL>AUS>JAP>CHI>NOR>FIN>UKR}\n'
+printf 'Launching port knocking sequence'
 dot 26
-echo " [+] Knock on TCP<143,993,587,456,25,587,993,80>"
-echo -n "Sending PCAP datagrams for fragmentation overlap"
+printf ' [+] Knock on TCP<143,993,587,456,25,587,993,80>\n'
+printf 'Sending PCAP datagrams for fragmentation overlap'
 dot 10
-echo " [+] Stack override ***** w00t w00t g0t r00t!"
-echo -en '\n['
-for i in $(seq 1 65); do echo -n "="; sleep 0.01; done
-echo -e '>]\n'
+printf ' [+] Stack override ***** w00t w00t g0t r00t!\n'
+printf '\n['
+for i in $(seq 1 65); do
+    printf '='
+    sleep 0.01
+done
+printf '>]\n\n'
 sleep 0.5
-echo -n "root@$1:~# "
+printf 'root@%s:~# ' "$1"
 sleep 5
-echo ""
-exit 0
+printf '\n'
