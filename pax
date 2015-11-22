@@ -1,0 +1,82 @@
+#! /usr/bin/env python3
+
+from enum import Enum
+from sys import exit
+
+import subprocess
+import argparse
+
+
+class PaxModeAction(argparse.Action):
+    def __init__(self, option_strings, dest, const):
+        if const not in {'read', 'write'}:
+            raise ValueError(const)
+        super().__init__(option_strings, dest, const=const, default='list', nargs=0)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if {getattr(namespace, self.dest), self.const} == {'read', 'write'}:
+            setattr(namespace, self.dest, 'copy')
+        else:
+            setattr(namespace, self.dest, self.const)
+
+
+ap = argparse.ArgumentParser()
+ap.add_argument('-r', action=PaxModeAction, const='read', dest='mode')
+ap.add_argument('-w', action=PaxModeAction, const='write', dest='mode')
+ap.add_argument('-a')
+ap.add_argument('-b', type=int, metavar='blocksize')
+ap.add_argument('-f', metavar='archive')
+# XXX
+#ap.add_argument('-H')
+ap.add_argument('-i')
+# XXX
+#ap.add_argument('-k')
+ap.add_argument('-l')
+ap.add_argument('-t')
+ap.add_argument('-v')
+ap.add_argument('-x', metavar='format', choices={'cpio', 'pax', 'ustar'})
+
+ap.add_argument('args', nargs='*')
+
+args = ap.parse_args()
+bsdcpio_args = ['bsdcpio']
+bsdcpio_flag_map = {
+    'a': '-A',
+    'i': '-r',
+    'l': '-l',
+    't': '-a',
+    'v': '-v',
+}
+bsdcpio_arg_map = {
+    'b': '-B',
+    'f': '-F',
+    'x': '-H',
+}
+bsdcpio_mode_map = {
+    'copy': '-p',
+    'read': '-i',
+    'write': '-o',
+    'list': '-it'
+}
+
+for pax_arg, pax_value in args._get_kwargs():
+    if pax_value is None:
+        continue
+
+    if pax_arg in bsdcpio_flag_map:
+        bsdcpio_args.append(bsdcpio_flag_map[pax_arg])
+    elif pax_arg in bsdcpio_arg_map:
+        bsdcpio_args.append(bsdcpio_arg_map[pax_arg])
+        bsdcpio_args.append(pax_value)
+    elif pax_arg in ('args', 'mode'):
+        continue
+    else:
+        raise NotImplementedError((pax_arg, pax_value))
+
+bsdcpio_args.append(bsdcpio_mode_map[args.mode])
+bsdcpio_args += args.args
+
+if args.mode == 'write' and len(args.args) > 0:
+    raise NotImplementedError('positional arguments in write mode')
+
+exit(subprocess.call(bsdcpio_args))
