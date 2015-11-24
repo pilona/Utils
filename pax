@@ -23,17 +23,17 @@ class PaxModeAction(argparse.Action):
 ap = argparse.ArgumentParser()
 ap.add_argument('-r', action=PaxModeAction, const='read', dest='mode')
 ap.add_argument('-w', action=PaxModeAction, const='write', dest='mode')
-ap.add_argument('-a')
+ap.add_argument('-a', action='store_true', default=False)
 ap.add_argument('-b', type=int, metavar='blocksize')
 ap.add_argument('-f', metavar='archive')
 # XXX
 #ap.add_argument('-H')
-ap.add_argument('-i')
+ap.add_argument('-i', action='store_true', default=False)
 # XXX
 #ap.add_argument('-k')
-ap.add_argument('-l')
-ap.add_argument('-t')
-ap.add_argument('-v')
+ap.add_argument('-l', action='store_true', default=False)
+ap.add_argument('-t', action='store_true', default=False)
+ap.add_argument('-v', action='store_true', default=False)
 ap.add_argument('-x', metavar='format', choices={'cpio', 'pax', 'ustar'})
 
 ap.add_argument('args', nargs='*')
@@ -60,14 +60,13 @@ bsdcpio_mode_map = {
 }
 
 for pax_arg, pax_value in args._get_kwargs():
-    if pax_value is None:
-        continue
-
     if pax_arg in bsdcpio_flag_map:
-        bsdcpio_args.append(bsdcpio_flag_map[pax_arg])
+        if pax_value:
+            bsdcpio_args.append(bsdcpio_flag_map[pax_arg])
     elif pax_arg in bsdcpio_arg_map:
-        bsdcpio_args.append(bsdcpio_arg_map[pax_arg])
-        bsdcpio_args.append(pax_value)
+        if pax_value is not None:
+            bsdcpio_args.append(bsdcpio_arg_map[pax_arg])
+            bsdcpio_args.append(pax_value)
     elif pax_arg in ('args', 'mode'):
         continue
     else:
