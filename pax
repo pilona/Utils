@@ -7,6 +7,13 @@ import subprocess
 import argparse
 
 
+def protect_find_path(path):
+    if path.startswith('-'):
+        return './' + path
+    else:
+        return path
+
+
 class PaxModeAction(argparse.Action):
     def __init__(self, option_strings, dest, const):
         if const not in {'read', 'write'}:
@@ -35,6 +42,7 @@ ap.add_argument('-l', action='store_true', default=False)
 ap.add_argument('-t', action='store_true', default=False)
 ap.add_argument('-v', action='store_true', default=False)
 ap.add_argument('-x', metavar='format', choices={'cpio', 'pax', 'ustar'})
+ap.add_argument('-X', action='store_true', default=False)
 
 ap.add_argument('args', nargs='*')
 
@@ -58,6 +66,9 @@ bsdcpio_mode_map = {
     'write': '-o',
     'list': '-it'
 }
+bsdcpio_special_set = {
+    'p', 'X', 'args', 'mode'
+}
 
 for pax_arg, pax_value in args._get_kwargs():
     if pax_arg in bsdcpio_flag_map:
@@ -67,7 +78,7 @@ for pax_arg, pax_value in args._get_kwargs():
         if pax_value is not None:
             bsdcpio_args.append(bsdcpio_arg_map[pax_arg])
             bsdcpio_args.append(pax_value)
-    elif pax_arg in ('args', 'mode'):
+    elif pax_arg in bsdcpio_special_set:
         continue
     else:
         raise NotImplementedError((pax_arg, pax_value))
@@ -78,7 +89,14 @@ if args.mode == 'write':
     if args.x is None:
         bsdcpio_args += ['-H', 'pax']
     if len(args.args) > 0:
-        find = subprocess.Popen(['find', '--'] + args.args, stdout=subprocess.PIPE)
+        find_args = []
+        bsdcpio_args.append('-d')
+        if args.X:
+            find_args.append('-xdev')
+        find = subprocess.Popen(['find']
+                                + list(map(protect_find_path, args.args))
+                                + find_args,
+                                stdout=subprocess.PIPE)
         bsdcpio_stdin = find.stdout
 else:
     bsdcpio_stdin = None
