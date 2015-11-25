@@ -66,6 +66,7 @@ if __name__ == '__main__':
     if args.ui is None:
         if 'DISPLAY' in environ:
             try:
+                import gi; gi.require_version('Gtk', '3.0')
                 from gi.repository import Gtk
                 args.ui = 'gtk'
             except ImportError:
