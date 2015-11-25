@@ -73,9 +73,15 @@ for pax_arg, pax_value in args._get_kwargs():
         raise NotImplementedError((pax_arg, pax_value))
 
 bsdcpio_args.append(bsdcpio_mode_map[args.mode])
-bsdcpio_args += args.args
 
-if args.mode == 'write' and len(args.args) > 0:
-    raise NotImplementedError('positional arguments in write mode')
+if args.mode == 'write':
+    if args.x is None:
+        bsdcpio_args += ['-H', 'pax']
+    if len(args.args) > 0:
+        find = subprocess.Popen(['find', '--'] + args.args, stdout=subprocess.PIPE)
+        bsdcpio_stdin = find.stdout
+else:
+    bsdcpio_stdin = None
 
-exit(subprocess.call(bsdcpio_args))
+bsdcpio = subprocess.Popen(bsdcpio_args, stdin=bsdcpio_stdin)
+exit(bsdcpio.wait())
