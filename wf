@@ -21,8 +21,8 @@ def gc_getitems():
         yield var, json.loads(val)
 
 
-def gc_jsonitems(items):
-    print(html.unescape(json.dumps(dict(items))))
+def gc_jsonitems(items, indent=4, sort=True):
+    print(html.unescape(json.dumps(dict(items), indent=indent, sort_keys=sort)))
 
 
 def gc_printitems(items):
