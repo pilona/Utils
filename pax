@@ -85,6 +85,7 @@ for pax_arg, pax_value in args._get_kwargs():
 
 bsdcpio_args.append(bsdcpio_mode_map[args.mode])
 
+bsdcpio_stdin = None
 if args.mode == 'write':
     if args.x is None:
         bsdcpio_args += ['-H', 'pax']
@@ -98,8 +99,6 @@ if args.mode == 'write':
                                 + find_args,
                                 stdout=subprocess.PIPE)
         bsdcpio_stdin = find.stdout
-else:
-    bsdcpio_stdin = None
 
 bsdcpio = subprocess.Popen(bsdcpio_args, stdin=bsdcpio_stdin)
 exit(bsdcpio.wait())
