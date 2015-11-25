@@ -2,6 +2,8 @@
 
 import html
 import json
+import subprocess
+from os import environ
 from urllib.request import urlopen
 
 
@@ -44,13 +46,19 @@ def gc_tkitems(items):
     raise NotImplementedError()
 
 
+def gc_web(items, *args):
+    if not args:
+        args = [environ['BROWSER']]
+    subprocess.check_call(args + [v for k, v in items if k == 'cityURL'])
+
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
     from os import environ
 
     ap = ArgumentParser('Government of Canada Ottawa, ON weather feed')
     uis = ap.add_mutually_exclusive_group()
-    for ui in 'print', 'json', 'gtk', 'tk':
+    for ui in 'print', 'json', 'gtk', 'tk', 'web':
         uis.add_argument('--' + ui, dest='ui', action='store_const', const=ui)
 
     args = ap.parse_args()
@@ -71,4 +79,5 @@ if __name__ == '__main__':
         'print': gc_printitems,
         'gtk': gc_gtkitems,
         'tk': gc_tkitems,
+        'web': gc_web,
     }[args.ui](gc_getitems())
