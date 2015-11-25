@@ -99,7 +99,7 @@ def _interact(page):
     """
     Display and recursively prompt user to page results.
     """
-    soup = BeautifulSoup(page)
+    soup = BeautifulSoup(page, 'lxml')
     # flake8 is wrong in saying that this was overindented. I don't care what
     # it thinks. The expression part of the lambda should not be *under* the
     # argument list, but to the *right*…
@@ -147,7 +147,7 @@ def _interact(page):
             pass
         else:
             if response == "w":
-                soup = BeautifulSoup(urlopen(walking["href"]))
+                soup = BeautifulSoup(urlopen(walking["href"]), 'lxml')
                 _print_results(*_isolate_results(soup))
             elif response != "q":
                 _interact(urlopen({"e": earlier,
