@@ -60,11 +60,16 @@ if __name__ == '__main__':
     from sys import exit
 
     ap = ArgumentParser('Play/download CBC Radio playlists')
+    ap.add_argument('-l', '--list', action='store_true')
     ap.add_argument('-t', '--tee', action='store_true')
     ap.add_argument('playlist', nargs='?')
     args = ap.parse_args()
 
     playlists = get_playlists()
+
+    if args.list:
+        print(*sorted(playlists), sep='\n')
+        exit()
 
     if args.playlist is None:
         print(*sorted(playlists), sep='\n')
