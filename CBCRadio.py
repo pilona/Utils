@@ -47,9 +47,9 @@ def play(playlist_url, tee=False):
                              '-i', 'async:' + value] +
                             # Yes, check by identity
                             ([] if not tee else
-                             ['-f', 'mp3',
+                             ['-f', 'mpegts',
                               '-c', 'copy',
-                              './' + datetime.now().replace(microsecond=0).isoformat() + '.mp3']) +
+                              './' + datetime.now().replace(microsecond=0).isoformat() + '.m2ts']) +
                              ['-f', 'alsa',
                               'default']) == 0):
             break
