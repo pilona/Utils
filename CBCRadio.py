@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from configparser import ConfigParser
+from datetime import datetime
 import subprocess
 import readline
 
@@ -32,7 +33,7 @@ def new_completer(playlist):
     return completer
 
 
-def play(playlist_url):
+def play(playlist_url, tee=False):
     r = requests.get(playlist_url)
     r.raise_for_status()
 
@@ -40,14 +41,30 @@ def play(playlist_url):
     p = ConfigParser()
     p.read_string(r.text)
     for key, value in p['playlist'].items():
-        if key.startswith('file') and subprocess.call(['mpv', value]) == 0:
+        if (key.startswith('file') and
+            subprocess.call(['ffmpeg',
+                             '-nostdin',
+                             '-i', 'async:' + value] +
+                            # Yes, check by identity
+                            ([] if not tee else
+                             ['-f', 'mp3',
+                              '-c', 'copy',
+                              './' + datetime.now().replace(microsecond=0).isoformat() + '.mp3']) +
+                             ['-f', 'alsa',
+                              'default']) == 0):
             break
 
 
 if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    ap = ArgumentParser('Play/download CBC Radio playlists')
+    ap.add_argument('-t', '--tee', action='store_true')
+    args = ap.parse_args()
+
     playlists = get_playlists()
     print(*sorted(playlists), sep='\n')
     readline.parse_and_bind('tab: complete')
     readline.set_completer(new_completer(playlists))
     playlist_url = playlists[input('Playlist: ')]
-    play(playlist_url)
+    play(playlist_url, tee=args.tee)
