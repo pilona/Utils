@@ -57,14 +57,24 @@ def play(playlist_url, tee=False):
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
+    from sys import exit
 
     ap = ArgumentParser('Play/download CBC Radio playlists')
     ap.add_argument('-t', '--tee', action='store_true')
+    ap.add_argument('playlist', nargs='?')
     args = ap.parse_args()
 
     playlists = get_playlists()
-    print(*sorted(playlists), sep='\n')
-    readline.parse_and_bind('tab: complete')
-    readline.set_completer(new_completer(playlists))
-    playlist_url = playlists[input('Playlist: ')]
+
+    if args.playlist is None:
+        print(*sorted(playlists), sep='\n')
+        readline.parse_and_bind('tab: complete')
+        readline.set_completer(new_completer(playlists))
+        playlist_url = playlists[input('Playlist: ')]
+    else:
+        try:
+            playlist_url = playlists[args.playlist]
+        except KeyError:
+            exit('Not a valid playlist: ' + args.playlist)
+
     play(playlist_url, tee=args.tee)
