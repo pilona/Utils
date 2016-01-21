@@ -91,7 +91,6 @@ if args.mode == 'write':
         bsdcpio_args += ['-H', 'pax']
     if len(args.args) > 0:
         find_args = []
-        bsdcpio_args.append('-d')
         if args.X:
             find_args.append('-xdev')
         find = subprocess.Popen(['find']
@@ -99,6 +98,8 @@ if args.mode == 'write':
                                 + find_args,
                                 stdout=subprocess.PIPE)
         bsdcpio_stdin = find.stdout
+else:
+    bsdcpio_args.append('-d')
 
 bsdcpio = subprocess.Popen(bsdcpio_args, stdin=bsdcpio_stdin)
 exit(bsdcpio.wait())
