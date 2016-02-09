@@ -74,10 +74,19 @@ with TemporaryFile() as fp:
                                      universal_newlines=True,
                                      stdin=fp)
 
-name, *args = shlex.split(choice)
-entry = entries[name]
-#import pdb; pdb.set_trace()
-launcher = Gio.DesktopAppInfo.new_from_filename(entry.filename)
-#launcher = Gio.DesktopAppInfo(**entry.content['Desktop Entry'])
-if not launcher.launch_uris(args):
-    exit(1)
+split = shlex.split(choice)
+# Hack to be able to pass arguments to the desktop entries; longest prefix
+# match on the desktop entry name.
+# TODO: Pop up dmenu again to prompt?
+for prefix_len in range(len(split), 0, -1):
+    try:
+        entry = entries[' '.join(split[:prefix_len])]
+    except KeyError:
+        pass
+    else:
+        launcher = Gio.DesktopAppInfo.new_from_filename(entry.filename)
+        #launcher = Gio.DesktopAppInfo(**entry.content['Desktop Entry'])
+        if launcher.launch_uris(split[prefix_len:]):
+            exit()
+        else:
+            exit(1)

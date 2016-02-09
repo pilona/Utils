@@ -1,9 +1,40 @@
-#! /bin/sh
+#! /usr/bin/env python3
 
-if command -v st >/dev/null 2>&1; then
-    # Real hack
-    TERM=xterm st "$@"
-else
-    # Not perfect, but it's your problem if you run xterm.
-    command -p xterm "$@"
-fi
+from argparse import ArgumentParser, REMAINDER
+from sys import argv, exit
+from subprocess import run
+
+ap = ArgumentParser('xterm emulation with st')
+ap.add_argument('-class')
+ap.add_argument('-fa')
+ap.add_argument('-fg')
+ap.add_argument('-bg')
+ap.add_argument('-rv', action='store_true', default=False)
+ap.add_argument('-geometry')
+ap.add_argument('-title')
+ap.add_argument('-e', nargs=REMAINDER)
+
+args = ap.parse_args()
+
+if args.rv:
+    st_args = ['-C', 'bg:white', '-C', 'fg:black']
+else:
+    st_args = ['-C', 'fg:black', '-C', 'bg:white']
+
+for key, value in args._get_kwargs():
+    if value is None:
+        continue
+
+    if key in {'class', 'geometry', 'title', 'fa'}:
+        st_args += [{'class': '-c',
+                     'geometry': '-g',
+                     'title': '-t',
+                     'fa': '-f'}[key],
+                    value]
+    elif key in {'fg', 'bg'}:
+        st_args += ['-C', ':'.join([key, value])]
+
+if args.e is not None:
+    st_args += ['-e'] + args.e
+
+exit(run(['st'] + st_args).returncode)
