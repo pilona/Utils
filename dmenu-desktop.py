@@ -59,6 +59,8 @@ def get_runnable_entries():
 parser = ArgumentParser(description='dmenu_run alternative only over desktop entries')
 parser.add_argument('dmenuargs', nargs='*')
 parser.add_argument('terminal', default='st', nargs='?')
+parser.add_argument('--no-args', action='store_true', default=False,
+                    help="Don't support passing arguments after the desktop entry name")
 args = parser.parse_args()
 
 # TODO: Handle duplicates
@@ -73,6 +75,15 @@ with TemporaryFile() as fp:
     choice = subprocess.check_output(['dmenu'] + args.dmenuargs,
                                      universal_newlines=True,
                                      stdin=fp)
+
+if args.no_args:
+    entry = entries[choice.strip()]
+    launcher = Gio.DesktopAppInfo.new_from_filename(entry.filename)
+    #launcher = Gio.DesktopAppInfo(**entry.content['Desktop Entry'])
+    if launcher.launch_uris():
+        exit()
+    else:
+        exit(1)
 
 split = shlex.split(choice)
 # Hack to be able to pass arguments to the desktop entries; longest prefix
