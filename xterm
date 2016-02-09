@@ -1,0 +1,9 @@
+#! /bin/sh
+
+if command -v st >/dev/null 2>&1; then
+    # Real hack
+    TERM=xterm st "$@"
+else
+    # Not perfect, but it's your problem if you run xterm.
+    command -p xterm "$@"
+fi
