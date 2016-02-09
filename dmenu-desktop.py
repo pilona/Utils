@@ -1,14 +1,12 @@
 #! /usr/bin/env python3
 
 from os import path, walk, execlp, environ
-from string import Template
+from sys import exit
 from argparse import ArgumentParser
-from warnings import warn
 from tempfile import TemporaryFile
 from contextlib import suppress
 from collections import defaultdict, OrderedDict
 
-import re
 import shlex
 import pickle
 import subprocess
@@ -16,65 +14,10 @@ import subprocess
 from xdg import BaseDirectory
 from xdg.DesktopEntry import DesktopEntry
 
+from gi.repository import Gio
+
 
 dmenu_cache = path.join(BaseDirectory.xdg_cache_home, 'dmenu_desktop')
-
-
-# TODO: path.normpath?
-def parse_value(value):
-    def callback(match):
-        code = match.group()
-        if code in 'nt$':
-            return {'n': '\n',
-                    't': '\t',
-                    # convert \$ to $$ for string.Template
-                    '$': '$$'}[code]
-        else:
-            # Taken care of further down the pipeline
-            if code in ' $~':
-                return '\\' + code
-            if code not in '\"\'\\<>|&;*?#()`':
-                warn('Unescaping bad escape \\' + code)
-            return code[1]
-    #return re.sub(r'(?<!\\)\\(?=[ \t\n\"\'\\<>~|&;$*?#()`])', '', word)
-    value = re.sub(r'\\.', callback, value)
-
-    # handles $foo, ${foo}, and $$
-    value = Template(value).substitute(defaultdict(str, environ))
-
-    # handles ~, ~foo, and \~
-    value = path.expanduser(value)
-
-    argv0, *args = shlex.split(value)
-    assert '=' not in argv0
-    return argv0, [arg
-                   for arg
-                   in map(percentfmt, args)
-                   if arg is not False]
-
-
-def percentfmt(word):
-    if len(word) == 2 and word[0] == '%' and word[1] in 'dDnNvmfFuUk':
-        warn('Removed field code')
-        return False
-    if word.endswith('%') and not word.endswith('%%'):
-        warn('Unescaped percent')
-    def callback(match):
-        code = match.group()
-        if code in 'dDnNvm':
-            warn('Deprecated field code')
-            return ''
-        elif code in 'fFuU':
-            warn('Not supporting user args to desktop entries.')
-            warn('User can only enter desktop entry name.')
-            return ''
-        elif code == 'k':
-            warn('Not implemented')
-            return ''
-        else:
-            return {'i': entry.getIcon(),
-                    'c': entry.getName()}
-    return re.sub(r'%.', callback, word)
 
 
 def cacher(it):
@@ -130,14 +73,11 @@ with TemporaryFile() as fp:
     choice = subprocess.check_output(['dmenu'] + args.dmenuargs,
                                      universal_newlines=True,
                                      stdin=fp)
-entry = entries[choice.strip()]
-# TODO: StartupWMClass hint
-# TODO: LC_MESSAGES
-# TODO: Handle actions
-# http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
-# http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s05.html
-# http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s10.html
-argv0, args = parse_value(entry.getExec())
-if len(args) > 0:
-    warn('Unparsed arguments "{}"'.format(args))
-execlp(argv0, argv0)
+
+name, *args = shlex.split(choice)
+entry = entries[name]
+#import pdb; pdb.set_trace()
+launcher = Gio.DesktopAppInfo.new_from_filename(entry.filename)
+#launcher = Gio.DesktopAppInfo(**entry.content['Desktop Entry'])
+if not launcher.launch_uris(args):
+    exit(1)
