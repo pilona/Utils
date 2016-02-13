@@ -17,9 +17,9 @@ ap.add_argument('-e', nargs=REMAINDER)
 args = ap.parse_args()
 
 if args.rv:
-    st_args = ['-C', 'bg:white', '-C', 'fg:black']
+    st_args = ['-C', 'bg:black', '-C', 'fg:white']
 else:
-    st_args = ['-C', 'fg:black', '-C', 'bg:white']
+    st_args = ['-C', 'bg:white', '-C', 'fg:black']
 
 for key, value in args._get_kwargs():
     if value is None:
