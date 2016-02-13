@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser, REMAINDER
 from sys import argv, exit
-from subprocess import run
+from os import execlp
 
 ap = ArgumentParser('xterm emulation with st')
 ap.add_argument('-class')
@@ -37,4 +37,4 @@ for key, value in args._get_kwargs():
 if args.e is not None:
     st_args += ['-e'] + args.e
 
-exit(run(['st'] + st_args).returncode)
+execlp('st', 'st', *st_args)
