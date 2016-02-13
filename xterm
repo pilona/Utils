@@ -4,11 +4,17 @@ from argparse import ArgumentParser, REMAINDER
 from sys import argv, exit
 from os import execlp
 
+xterm_to_st_colour_flags = {
+    'fg': 'fg',
+    'bg': 'bg',
+    'cr': 'cs',
+}
+
 ap = ArgumentParser('xterm emulation with st')
 ap.add_argument('-class')
 ap.add_argument('-fa')
-ap.add_argument('-fg')
-ap.add_argument('-bg')
+for flag in xterm_to_st_colour_flags:
+    ap.add_argument('-' + flag)
 ap.add_argument('-rv', action='store_true', default=False)
 ap.add_argument('-geometry')
 ap.add_argument('-title')
@@ -31,8 +37,8 @@ for key, value in args._get_kwargs():
                      'title': '-t',
                      'fa': '-f'}[key],
                     value]
-    elif key in {'fg', 'bg'}:
-        st_args += ['-C', ':'.join([key, value])]
+    elif key in {'fg', 'bg', 'cr'}:
+        st_args += ['-C', ':'.join([xterm_to_st_colour_flags[key], value])]
 
 if args.e is not None:
     st_args += ['-e'] + args.e
