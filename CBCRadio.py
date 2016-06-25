@@ -49,9 +49,13 @@ def play(playlist_url, tee=False):
                             ([] if not tee else
                              ['-f', 'mpegts',
                               '-c', 'copy',
-                              './' + datetime.now().replace(microsecond=0).isoformat() + '.m2ts']) +
-                             ['-f', 'alsa',
-                              'default']) == 0):
+                              './' +
+                                datetime.now()
+                                        .replace(microsecond=0)
+                                        .isoformat() +
+                                '.m2ts']) +
+                            ['-f', 'alsa',
+                             'default']) == 0):
             break
 
 
