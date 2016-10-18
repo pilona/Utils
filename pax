@@ -15,10 +15,15 @@ def protect_find_path(path):
 
 
 class PaxModeAction(argparse.Action):
-    def __init__(self, option_strings, dest, const):
+    def __init__(self, option_strings, dest, const, **kwargs):
         if const not in {'read', 'write'}:
             raise ValueError(const)
-        super().__init__(option_strings, dest, const=const, default='list', nargs=0)
+        super().__init__(option_strings,
+                         dest,
+                         const=const,
+                         default='list',
+                         nargs=0,
+                         **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         if {getattr(namespace, self.dest), self.const} == {'read', 'write'}:
@@ -27,22 +32,31 @@ class PaxModeAction(argparse.Action):
             setattr(namespace, self.dest, self.const)
 
 
-ap = argparse.ArgumentParser()
-ap.add_argument('-r', action=PaxModeAction, const='read', dest='mode')
-ap.add_argument('-w', action=PaxModeAction, const='write', dest='mode')
-ap.add_argument('-a', action='store_true', default=False)
-ap.add_argument('-b', type=int, metavar='blocksize')
-ap.add_argument('-f', metavar='archive')
+ap = argparse.ArgumentParser(
+    description='Primitive incomplete pax-ish wrapper around bsdcpio')
+ap.add_argument('-r', action=PaxModeAction, const='read', dest='mode',
+                help='read mode')
+ap.add_argument('-w', action=PaxModeAction, const='write', dest='mode',
+                help='write mode')
+ap.add_argument('-a', action='store_true', default=False,
+                help='Append to archive')
+ap.add_argument('-f', metavar='archive',
+                help='read from this file')
 # XXX
 #ap.add_argument('-H')
-ap.add_argument('-i', action='store_true', default=False)
+ap.add_argument('-i', action='store_true', default=False,
+                help='interactively rename')
 # XXX
 #ap.add_argument('-k')
-ap.add_argument('-l', action='store_true', default=False)
-ap.add_argument('-t', action='store_true', default=False)
-ap.add_argument('-v', action='store_true', default=False)
+ap.add_argument('-l', action='store_true', default=False,
+                help='make hard links')
+ap.add_argument('-t', action='store_true', default=False,
+                help='reset access times after read')
+ap.add_argument('-v', action='store_true', default=False,
+                help='verbose')
 ap.add_argument('-x', metavar='format', choices={'cpio', 'pax', 'ustar'})
-ap.add_argument('-X', action='store_true', default=False)
+ap.add_argument('-X', action='store_true', default=False,
+                help='do not cross filesystem boundaries')
 
 ap.add_argument('args', nargs='*')
 
