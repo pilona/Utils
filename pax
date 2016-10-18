@@ -100,6 +100,7 @@ for pax_arg, pax_value in args._get_kwargs():
 bsdcpio_args.append(bsdcpio_mode_map[args.mode])
 
 bsdcpio_stdin = None
+bsdcpio_input = None
 if args.mode == 'write':
     if args.x is None:
         bsdcpio_args += ['-H', 'pax']
@@ -114,6 +115,15 @@ if args.mode == 'write':
         bsdcpio_stdin = find.stdout
 else:
     bsdcpio_args.append('-d')
+    if args.mode == 'copy':
+        *files, directory = args.args
+        bsdcpio_stdin = subprocess.PIPE
+        bsdcpio_args.append(directory)
+        if files:
+            bsdcpio_input = '\n'.join(files).encode()
 
 bsdcpio = subprocess.Popen(bsdcpio_args, stdin=bsdcpio_stdin)
+if bsdcpio_input is not None:
+    with bsdcpio.stdin:
+        bsdcpio.stdin.write(bsdcpio_input)
 exit(bsdcpio.wait())
