@@ -2,6 +2,11 @@
 
 set -e
 
+if [ "$(id -u)" != 0 ]; then
+    echo "please run as root" 1>&2
+    exit 1
+fi
+
 new="$(date -Iseconds)"
 mkdir "$new"
 
