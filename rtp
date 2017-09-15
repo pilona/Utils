@@ -1,0 +1,99 @@
+#! /bin/sh
+
+set -e
+
+# Outputs SDP for outbound-chosen audio stream on stdout
+sdp_out() {
+    ffmpeg -nostdin \
+           -hide_banner \
+           -loglevel warning \
+           -f alsa -i null \
+           -f rtp -t 0 \
+           -c:a libopus \
+           rtp://$1:$2 \
+      | awk 'NR != 1 || $0 != "SDP:"'
+}
+
+# Takes SDP on stdin
+rtp_in() {
+    # Passive, set up listener as told
+    ffmpeg -nostdin \
+           -hide_banner \
+           -loglevel warning \
+           -protocol_whitelist pipe,udp,rtp \
+           -f sdp -i - \
+           -f alsa default \
+           >/dev/null
+}
+
+rtp_out() {
+    ffmpeg -nostdin \
+           -hide_banner \
+           -loglevel warning \
+           -re -i "$3" \
+           -c:a libopus \
+           -f rtp rtp://$1:$2 \
+           >/dev/null
+}
+
+# Takes SDP on stdin and returns CTS when ready
+server() {
+    echo CTS
+    # Racy: between ffmpeg acting on the SDP and the client sending RTP
+    # Can't background below because it needs to read from stdin; background
+    # processes can't read from stdin, and trying to do so makes ffmpeg error
+    # out while trying to read/parse the SDP.
+    rtp_in >/dev/null
+}
+
+client() {
+    server="$1"
+    port="$2"
+    input="$3"
+    {
+        sdp_out "$server" "$port"
+    } | ssh "$server" rtp server | {
+        read cts
+        [ "$cts" = CTS ] && rtp_out "$server" "$port" "$input" &
+        cat # pass through any other messages
+        wait # not fg, for we don't have job control
+    }
+}
+
+usage() {
+    cat <<-USAGE
+usage: $0 <c|client>|<s|server> [args...]
+description: A 1-way RTP stream setup program over SSH
+
+subcommands:
+client: <server> <port> <input>
+server: < SDP
+USAGE
+}
+
+main() {
+    case "$1" in
+        server|s)
+            shift
+            server "$@"
+            ;;
+
+        client|c)
+            shift
+            #sdp_out "$1" "$2"
+            client "$@"
+            ;;
+
+        -h|--help)
+            shift
+            usage
+            ;;
+        *)
+            shift
+            usage
+            false
+            ;;
+    esac
+}
+
+main "$@"
