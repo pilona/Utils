@@ -6,13 +6,13 @@ A few convenient transformations for Pandoc HTML 5 output.
 
 import re
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 
 _ELEMENT_OF_INTEREST = re.compile('^dt|h[1-6]$')
 
 
-def xfrm_ids(name):
+def xfrm_ids(name: str) -> str:
     """
     Coerce some text into something suitable for a fragment identifier.
     """
@@ -24,7 +24,7 @@ def xfrm_ids(name):
                                                            '\N{LINE FEED}'})))
 
 
-def autoid_elements(soup):
+def autoid_elements(soup: Tag) -> Tag:
     """
     Add an id to all definition term and headers based on their contents.
 
@@ -43,7 +43,7 @@ def autoid_elements(soup):
     return soup
 
 
-def figure_hyperlink(soup):
+def figure_hyperlink(soup: Tag) -> Tag:
     """
     Make figures out of images in links.
 
