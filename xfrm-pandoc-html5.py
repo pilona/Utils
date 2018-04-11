@@ -65,9 +65,16 @@ def figure_hyperlink(soup: Tag) -> Tag:
 
     We want the first to also be a figure.
     """
-    for img in soup.select('p > a:only-child > img:only-child[alt]'):
+    # BeautifulSoup 4, as of this writing, doesn't support these
+    # pseudo-classes.
+    #for img in soup.select('p > a:only-child > img:only-child[alt]'):
+    for img in soup.select('p > a > img[alt]'):
+        # <p><a><img alt='not blank' /></a></p>
         a = img.parent
         p = a.parent
+        if len(a.contents) != 1 or \
+           len(p.contents) != 1:
+            continue
         figure = soup.new_tag('figure')
         figcaption = soup.new_tag('figcaption')
         figcaption.append(img.attrs['alt'])
