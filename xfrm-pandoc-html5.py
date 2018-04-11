@@ -125,7 +125,7 @@ if __name__ == '__main__':
 
     argument_parser = ArgumentParser()
     argument_parser.add_argument('html', type=FileType(mode='rb'),
-                                default=stdin, nargs=OPTIONAL)
+                                default=stdin.buffer, nargs=OPTIONAL)
 
     args = argument_parser.parse_args()
     soup = BeautifulSoup(args.html, 'html5lib')
@@ -135,4 +135,7 @@ if __name__ == '__main__':
     figured = figure_hyperlink(autoided)
     replace_all_dot_code(soup)
 
-    stdout.write(str(figured))
+    # hack to remove double/triple dashes from comments
+    # .encode('utf-8')? We don't give BS output! Sigh. Windows!
+    stdout.buffer.write(str(figured).replace('---', '&mdash;')
+                                    .encode('utf-8'))
