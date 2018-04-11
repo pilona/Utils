@@ -110,6 +110,12 @@ def find_dot_code(soup: Tag) -> List[Tag]:
 
 def replace_dot_code(dot_code: Tag) -> None:
     svg = BeautifulSoup(dot(dot_code.text), 'xml').svg
+    assert 'style' not in svg.attrs
+    svg.attrs['style'] = (
+        f'max-width: 100%; '
+        f'width: {svg.attrs.pop("width")}; '
+        f'height: {svg.attrs.pop("height")};'
+    )
     dot_code.clear()
     dot_code.append(svg)
 
