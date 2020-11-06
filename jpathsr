@@ -1,0 +1,64 @@
+#! /usr/bin/env python3
+
+'''
+Recursively print paths in the given JSON
+'''
+
+from itertools import chain
+from typing import Generator, List, Dict, NewType, Union, Optional
+
+
+JSONable = NewType('JSONable',
+                   Union[List['JSONable'], Dict[str, 'JSONable'],
+                         int, float, None, str])
+
+
+def paths(j: JSONable,
+          prefix: Optional[str] = None) -> Generator[List[str], None, None]:
+    '''
+    Yield all jsonable j materialized paths recursively, in order
+
+    - j must be plain json.dumps-able
+    - dict keys yielded as is
+    - list items are given a name of '[]'
+    - recursive base case is any non-list/dict
+
+    E.g.,
+
+    paths({}) = []
+    paths({'foo': 'bar'}) = [['foo']]
+    paths(1) = None
+    paths([{'foo': 'bar'}]) = [['[]', 'foo']]
+    paths({'foo': {'bar': 'baz'}}) = [['foo', 'bar']]
+    '''
+    if isinstance(j, list):
+        yield from chain.from_iterable(
+            paths(_, (prefix or []) + ['[]'])
+            for _
+            in j
+        )
+    elif isinstance(j, dict):
+        yield from chain.from_iterable(
+            paths(v, (prefix or []) + [k])
+            for k, v
+            in j.items()
+        )
+    else:
+        yield prefix
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser, FileType, RawDescriptionHelpFormatter
+    import json
+
+    argument_parser = ArgumentParser(
+        description=__doc__,
+        formatter_class=RawDescriptionHelpFormatter
+    )
+    argument_parser.add_argument('har', type=FileType('r'))
+
+    args = argument_parser.parse_args()
+    with args.har:
+        har = json.load(args.har)
+    for path in paths(har):
+        print('', *path, sep='/')
