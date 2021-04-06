@@ -86,7 +86,7 @@ with terminal_ctx(), less() as stdout, redirect_stdout(stdout):
     write(' '.join(map(str, [
         t['covered_lines'], 'covered lines,',
         t['num_statements'], 'statements,',
-        t['percent_covered'], '% covered,',
+        round(t['percent_covered'], 2), '% covered,',
         t['missing_lines'], 'missing lines,',
         t['excluded_lines'], 'excluded lines,',
         t['num_branches'], 'branches,',
