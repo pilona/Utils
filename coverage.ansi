@@ -20,7 +20,7 @@ import sys
 
 
 def coverage_json() -> str:
-    return subprocess.check_output(['coverage', 'json', '-o', '-'],
+    return subprocess.check_output(['coverage', 'json', '-o', '-', '--fail-under=0'],
                                    stdin=subprocess.DEVNULL,
                                    stderr=subprocess.PIPE,
                                    universal_newlines=True)
