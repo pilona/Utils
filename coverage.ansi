@@ -72,7 +72,7 @@ if __name__ != '__main__':
     raise ImportError('Not a module')
 
 argument_parser = ArgumentParser(
-    __doc__,
+    description=__doc__,
     formatter_class=RawDescriptionHelpFormatter
 )
 args = argument_parser.parse_args()
