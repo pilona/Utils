@@ -56,7 +56,7 @@ def walktransform(tree):
                     for i, line in enumerate(lines):
                         if line.rstrip() \
                                .endswith('start snippet ' + snippets[0]):
-                            startlines = [i + 1]
+                            startlines = [i + 2]
                         if line.rstrip() \
                                .endswith('end snippet ' + snippets[0]):
                             endlines = [i]
@@ -72,10 +72,9 @@ def walktransform(tree):
                     if 'numberLines' in classes:
                         their_options.append([
                             'startFrom',
-                            # Line numbers are 1-indexed, not 0-indexed.
-                            str(startlines[0] + 1)
+                            str(startlines[0])
                         ])
-                    lines = lines[startlines[0]:]
+                    lines = lines[startlines[0] - 1:]
                 code = '\n'.join(lines)
 
             # Remove up to ```{dedent=dedents[0]}
