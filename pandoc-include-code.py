@@ -23,7 +23,7 @@ def walktransform(tree):
             our_options = [(k, v) for k, v in meta if k in our_keys]
             their_options = [(k, v) for k, v in meta if k not in our_keys]
 
-            # TODO: our_classes: .numberLines, .includeLink
+            # TODO: our_classes: .includeLink
 
             includes = [v for k, v in our_options if k == 'include']
             startlines = [int(v) for k, v in our_options if k == 'startLine']
@@ -69,6 +69,12 @@ def walktransform(tree):
                 if endlines:
                     lines = lines[:endlines[0]]
                 if startlines:
+                    if 'numberLines' in classes:
+                        their_options.append([
+                            'startFrom',
+                            # Line numbers are 1-indexed, not 0-indexed.
+                            str(startlines[0] + 1)
+                        ])
                     lines = lines[startlines[0]:]
                 code = '\n'.join(lines)
 
