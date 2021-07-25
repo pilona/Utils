@@ -124,7 +124,87 @@ if __name__ == '__main__':
     with stdout:
         ast['blocks'] = walktransform(ast['blocks'])
         json.dump(ast, stdout)
+    exit()
 
 
-def test_todo():
-    pass
+from contextlib import contextmanager  # noqa
+from tempfile import NamedTemporaryFile  # noqa
+from textwrap import dedent  # noqa
+import subprocess  # noqa
+
+
+# So I needn't conditionally import pytest.fixture.
+@contextmanager
+def hello_world():
+    with NamedTemporaryFile('w') as f:
+        f.write(dedent(r'''
+        1
+        2
+        3
+        4
+        5
+        -- start snippet hello-world
+             main =
+               putStrLn "Hello world."
+        -- end snippet hello-world
+        ''').strip())
+        f.flush()
+        yield f
+
+
+def test_integration():
+    with hello_world() as f:
+        assert subprocess.check_output([
+            'pandoc',
+            '--filter', 'pandoc-include-code.py',
+        ], universal_newlines=True, stderr=subprocess.PIPE, input=dedent(rf'''
+            `snippet=hello-world`
+
+            ```{{include={f.name} snippet=hello-world dedent=1 .numberLines}}
+            ```
+
+            `startLine=7 endLine=8`
+
+            ```{{include={f.name} startLine=7 endLine=8 dedent=1 .numberLines}}
+            ```
+        ''')).strip() == dedent(r'''
+            <p><code>snippet=hello-world</code></p>
+            <div class="sourceCode" id="cb1" data-startFrom="7"><pre class="sourceCode numberSource numberLines"><code class="sourceCode" style="counter-reset: source-line 6;"><span id="cb1-7"><a href="#cb1-7"></a>    main =</span>
+            <span id="cb1-8"><a href="#cb1-8"></a>      putStrLn &quot;Hello world.&quot;</span></code></pre></div>
+            <p><code>startLine=7 endLine=8</code></p>
+            <div class="sourceCode" id="cb2" data-startFrom="7"><pre class="sourceCode numberSource numberLines"><code class="sourceCode" style="counter-reset: source-line 6;"><span id="cb2-7"><a href="#cb2-7"></a>    main =</span>
+            <span id="cb2-8"><a href="#cb2-8"></a>      putStrLn &quot;Hello world.&quot;</span></code></pre></div>
+        ''').strip()  # noqa
+
+
+def test_startline():
+    with hello_world() as f:
+        assert walktransform({
+            't': 'CodeBlock',
+            'c': [
+                [
+                    '',
+                    ['numberLines'],
+                    [['include', f.name],
+                     ['startLine', '7'],
+                     ['endLine', '8']],
+                ],
+                ''
+            ],
+        }) == {
+            't': 'CodeBlock',
+            'c': [
+                [
+                    '',
+                    ['numberLines'],
+                    [['startFrom', '7']],
+                ],
+                '     main =\n'
+                '       putStrLn "Hello world."'
+            ]
+        }
+
+
+__all__ = (
+    'walktransform',
+)
