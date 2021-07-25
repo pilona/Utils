@@ -87,7 +87,7 @@ def walktransform(tree):
                           for i
                           in reversed(range(1, dedents[0] + 1))
                           if line.startswith(' ' * i)),
-                          line)
+                         line)
                     for line
                     in code.splitlines()
                 )
